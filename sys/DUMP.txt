@@ -1,0 +1,19 @@
+--------------STACK DUMP occurred----------------
+It was called in func main, and on the line 19
+The stack address: [0x16f1a3748]
+The data begining address: [0x123e06790]
+Stack capacity now is [20]
+Number of elems in stack now is [11]
+0 0 0 0 
+1 0 0 0 
+2 0 0 0 
+3 0 0 0 
+4 0 0 0 
+5 0 0 0 
+6 0 0 0 
+7 0 0 0 
+8 0 0 0 
+9 0 0 0 
+a 0 0 0 
+------------- DUMP finished ---------------
+
