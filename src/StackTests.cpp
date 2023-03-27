@@ -9,6 +9,7 @@ int main ()
 
     InitDumpFile();
     InitLogFile();
+
     StackInit (&stack, 10, 10);
 
     for (int i = 0; i < 11; i++)
@@ -26,6 +27,7 @@ int main ()
     
 
     StackDestroy (&stack);
+
     DestroyDumpFile();
     DestroyLogFile();
 

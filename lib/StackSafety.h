@@ -69,6 +69,7 @@ if (((ErrCode = StackCheckInvariants (stack_ptr)) != 0) && ErrCode != HASH_DAMAG
     return ErrCode;                                                                 \
 }                                                                                   \
 else                                                                                \
+    ErrCode = 0;                                                                    \
     StackDump (stack_ptr, __func__, __LINE__, ErrCode);                             \
 } while (0)
 
