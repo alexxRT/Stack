@@ -1,7 +1,7 @@
 #ifndef STACK_DEBUG_H
 #define STACK_DEBUG_H
 
-#include "Stack.h"
+#include "stack.h"
 
 //#define DBG_MODE //This define turns on all custom asserts, use for DEBUG
 
@@ -23,19 +23,18 @@ enum ERROR_LIST
     LEFT_CANARY_DAMAGED
 };
 
-void  InitDumpFile    ();
+void  InitDumpFile    (const char* const dump_path);
 void  DestroyDumpFile ();
-void  InitLogFile     ();
+
+void  InitLogFile     (const char* const log_path);
 void  DestroyLogFile  ();
 
 void  StackDump  (my_stack* stack, const char* func, int line, int ErrCode);
-int   StackPrint (FILE* file, my_stack* stack, size_t nel);
-
-void* PlaceDataInCanaries (void* data, size_t num_of_elems, size_t width);
-int   StackRehash         (my_stack* stack);
-
 int   StackCheckInvariants (my_stack* stack);
 void  PrintErr (int ErrCode, my_stack* stack, const char* func_name, int line);
+
+void* PlaceDataInCanaries (void* data, size_t num_of_elems, size_t width);
+int StackRehash (my_stack* stack);
 
 #ifdef DBG_MODE
 #define STACK_ASSERT( stack_ptr )                                           \

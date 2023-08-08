@@ -22,10 +22,8 @@ static const char POISNED_ELEM = 0x77;
 
 #endif
 
-
-void* Recalloc (void* ptr, size_t new_size);
-
 #define CALLOC( count, type )            (type*)calloc(count, sizeof(type))
-#define RECALLOC( ptr, new_size, type )  (type*)Recalloc(ptr, new_size)
+
+#define REALLOC( data, new_size, type)  (type*)realloc(data, new_size)
 
 #endif

@@ -1,6 +1,6 @@
-#include "../lib/Stack.h"
-#include "../lib/Memory.h"
-#include "../lib/StackSafety.h"
+#include "stack.h"
+#include "memory.h"
+#include "stack_debug.h"
 #include <string.h>
 
 
@@ -152,7 +152,7 @@ int ResizeDown (my_stack* stack)
     size_t cur_cap = stack->capacity;
     stack->capacity = !cur_cap + cur_cap / 2;
 
-    data_start = RECALLOC (data_start, NEW_SIZE (stack->capacity), char);
+    data_start = REALLOC (data_start, NEW_SIZE (stack->capacity), char);
 
     #ifdef DBG_MODE
         if (data_start == NULL)
@@ -192,7 +192,7 @@ int ResizeUp (my_stack* stack)
     size_t cur_cap = stack->capacity;
     stack->capacity = !cur_cap + 2*cur_cap;
 
-    data_start =  RECALLOC (data_start, NEW_SIZE (stack->capacity), char);
+    data_start =  REALLOC (data_start, NEW_SIZE (stack->capacity), char);
 
     #ifdef DBG_MODE
         if (data_start == NULL)

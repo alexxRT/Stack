@@ -1,17 +1,17 @@
 #include <stdio.h>
 #include <assert.h>
 #include <cstddef>
-#include "../lib/StackSafety.h"
-#include "../lib/Stack.h"
+#include "stack_debug.h"
+#include "stack.h"
 
 static FILE* dump_file = nullptr; 
 static FILE* log_file  = nullptr;
 
 //-----------------------------------SYSTEM FILES FOR DEBUG ONLY--------------------------------//
 
-void InitDumpFile ()
+void InitDumpFile (const char* const dump_path)
 {
-    dump_file = fopen ("../sys/DUMP.txt", "a");
+    dump_file = fopen (dump_path, "a");
     assert (dump_file != NULL);
 }
 
@@ -22,9 +22,9 @@ void DestroyDumpFile ()
     dump_file = NULL;
 }
 
-void InitLogFile ()
+void InitLogFile (const char* const log_path)
 {
-    log_file = fopen ("../sys/LOG_FILE.txt", "a");
+    log_file = fopen (log_path, "a");
     assert (log_file != NULL);
 }
 
@@ -41,6 +41,8 @@ void DestroyLogFile ()
 //---------------------------------------STACK DUMP----------------------------------------------//
 
 void PrintHexBytes  (FILE* file, void* elem, size_t size);
+
+int StackPrint (FILE* file, my_stack* stack, size_t nel);
 
 void StackDump (my_stack* stack, const char* func, int line, int ErrCode)
 {
@@ -97,19 +99,20 @@ void StackDump (my_stack* stack, const char* func, int line, int ErrCode)
 
 int StackPrint (FILE* file, my_stack* stack, size_t nel)
 {
-    for (int i = 0; i < nel; i ++)
+    for (size_t i = 0; i < nel; i ++)
     {
         PrintHexBytes (file, stack->data + i, sizeof(stack_data_t));
     }
     return SUCCESS;
 }
 
+
 void PrintHexBytes (FILE* file, void* elem, size_t size)
 { 
     assert (file != NULL);
     assert (elem != NULL);
 
-    for (int i = 0; i < size; i++)
+    for (size_t i = 0; i < size; i++)
     {
         fprintf (file, "%x ", *((unsigned char*)elem + i));
     }
@@ -168,10 +171,10 @@ void PrintErr (int ErrCode, my_stack* stack, const char* func_name, int line)
         fprintf (log_file, "Stack capacity didn't changed in func %s ", func_name);
         break;
     case DESTROY_FAILED:
-        fprintf (log_file, "Your aka alive stack is dead in func %s ", func_name);
+        fprintf (log_file, "Alive stack is dead in func %s ", func_name);
         break;
     case INIT_FAILED:
-        fprintf (log_file, "Your aka dead stack is alive in func %s ", func_name);
+        fprintf (log_file, "Dead stack is alive in func %s ", func_name);
     case HASH_DAMAGED:
         fprintf (log_file, "Hash damage in func %s ", func_name);
         break;                     
@@ -182,7 +185,7 @@ void PrintErr (int ErrCode, my_stack* stack, const char* func_name, int line)
         fprintf (log_file, "Right konoreyka damaged in func %s ", func_name);
         break;
     case SUCCESS:
-        return;
+        fprintf (log_file, "Stack %p safe and consistant, line: %d, function: %s\n", stack, line, func_name);
         break;
 
     default:
@@ -190,7 +193,10 @@ void PrintErr (int ErrCode, my_stack* stack, const char* func_name, int line)
         break;
     }
 
-    fprintf (log_file, "and on the line %d\n", line);
+    if (ErrCode != SUCCESS) {
+        fprintf (log_file, "and on the line %d\n", line);
+        fprintf (log_file, "stack address: [%p]\n\n", stack);
+    }
 }
 
 int StackBaseInvariants (my_stack* stack)
@@ -213,7 +219,11 @@ void* PlaceDataInCanaries (void* data, size_t num_of_elems, size_t width)
     assert (data != NULL);
 
     *(long long *)data = CANARY;
-    *(long long *)((char*)data + sizeof(CANARY) + num_of_elems * width) = CANARY;
+
+    #pragma GCC diagnostic push
+    #pragma GCC diagnostic ignored "-Wcast-align"
+        *(long long *)((char*)data + sizeof(CANARY) + num_of_elems * width) = CANARY;
+    #pragma GCC diagnostic pop
 
     return (char*)data + sizeof(CANARY);
 }
@@ -221,8 +231,11 @@ void* PlaceDataInCanaries (void* data, size_t num_of_elems, size_t width)
 
 int StackCheckCanary (my_stack* stack)
 {
-    if (*((long long int*)stack->data - 1) != CANARY) return LEFT_CANARY_DAMAGED;
-    if (*(long long int*)(stack->data + stack->capacity) != CANARY) return RIGHT_CANARY_DAMAGED;
+    #pragma GCC diagnostic push
+    #pragma GCC diagnostic ignored "-Wcast-align"
+        if (*((long long int*)stack->data - 1) != CANARY) return LEFT_CANARY_DAMAGED;
+        if (*(long long int*)(stack->data + stack->capacity) != CANARY) return RIGHT_CANARY_DAMAGED;
+    #pragma GCC diagnostic pop
 
     return SUCCESS;
 }
@@ -237,12 +250,13 @@ long long int Hash (void* data, size_t num_of_bytes)
 {
     int hash = 0;
 
-    for (int i = 0; i < num_of_bytes; i ++)
+    for (size_t i = 0; i < num_of_bytes; i ++)
     {
         hash += *((char*)data + i);
     }
 
     return hash;
+
 }
 
 int StackRehash (my_stack* stack)
